@@ -4,9 +4,8 @@ import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 void main() async {
   await Supabase.initialize(
-    url: 'https://rbrxhdpaqdenmxhedwve.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MDI5ODQ1NiwiZXhwIjoxOTU1ODc0NDU2fQ.3VC0TIEJVqLj3NqU2Xws9YeT7aseK8TCXAqzKF1fM7w',
+    url: '',
+    anonKey: '',
   );
 
   runApp(const MyApp());
