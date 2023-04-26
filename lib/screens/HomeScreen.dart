@@ -2,6 +2,7 @@ import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery/constants.dart';
+import 'package:image_gallery/screens/LoginScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,13 +18,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List _attachments = [];
+  final List<PlatformFile> _attachments = [];
 
   getPics() async {
     final List<Object> supaPaths = [];
     final pics = await supaClient.storage.from('images').list();
 
-    pics.removeAt(0);
+    if (pics.isEmpty) return;
 
     Future.wait(
       pics.map(
@@ -33,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
-
     return supaPaths;
   }
 
@@ -75,31 +75,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       type: FileType.custom,
                       allowedExtensions: ['jpg', 'png'],
                     );
+
                     if (result == null) {
                       print("No file selected");
                     } else {
                       try {
-                        setState(() {});
-                        result.files.map((file) {
-                          _attachments.add(file);
-                        });
+                        result.files.map(
+                          (file) {
+                            _attachments.add(file);
+                          },
+                        ).toList();
 
                         await Future.wait(
                           _attachments.map(
                             (attch) async {
                               final fileBytes = attch.bytes;
-                              final fileName = (attch.name);
+                              final fileName = attch.name;
 
                               await supaClient.storage
                                   .from('images')
                                   .uploadBinary(
-                                    '$fileName',
+                                    fileName,
                                     fileBytes!,
                                   );
                             },
                           ),
                         );
-                        await getPics();
                         setState(() {});
                       } catch (e) {
                         print(e);
@@ -127,7 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                     onPressed: () async {
                       await supaClient.auth.signOut();
-                      setState(() {});
+                      Navigator.of(context).pushAndRemoveUntil(
+                          LogInScreen.route(), (route) => false);
                     },
                     child: const Text('Logout'))
               ],
@@ -164,7 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         await supaClient.storage
                                             .from('images')
                                             .remove([pInfo['name']]);
-
                                         setState(() {});
                                       },
                                       icon: const Icon(
@@ -181,6 +182,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData) {
+                    return const Center(child: Text('No images uploaded yet'));
                   } else {
                     return const Center(child: CircularProgressIndicator());
                   }
